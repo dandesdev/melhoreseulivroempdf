@@ -140,7 +140,7 @@ function App() {
       <Nav />
       <main className="mx-auto max-w-[640px] px-6 pt-20 pb-16 font-fira text-text flex flex-col gap-8">
         <header className="flex flex-col gap-3">
-          <h1 className="font-bold text-3xl">bettermobilepdf</h1>
+          <h1 className="font-bold text-3xl">{t.appName}</h1>
           <p className="font-bold text-xl">{t.tagline}</p>
           <p className="text-text/80 text-sm leading-relaxed">{t.intro}</p>
         </header>

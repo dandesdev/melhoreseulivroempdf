@@ -1,7 +1,8 @@
 export type Language = "br" | "en";
 
 const br = {
-  docTitle: "bettermobilepdf: PDFs escaneados legíveis no celular",
+  appName: "melhore seu livro em pdf",
+  docTitle: "melhore seu livro em pdf: PDFs escaneados legíveis no celular",
   tagline: "Livros escaneados, prontos para ler no celular.",
   intro:
     "Divide as páginas duplas, endireita, corta as margens, ajusta o contraste e coloca tudo na ordem certa. Roda no seu aparelho: o arquivo não é enviado para lugar nenhum.",
@@ -54,7 +55,8 @@ const br = {
 export type Strings = typeof br;
 
 const en: Strings = {
-  docTitle: "bettermobilepdf: scanned PDFs made readable on your phone",
+  appName: "improve your pdf book",
+  docTitle: "improve your pdf book: scanned PDFs made readable on your phone",
   tagline: "Scanned books, ready to read on your phone.",
   intro:
     "Splits double pages, straightens them, trims the margins, fixes the contrast and puts everything in reading order. It runs on your device: the file is never uploaded.",

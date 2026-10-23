@@ -1,6 +1,6 @@
 <img src="public/favicon.svg" width="64" height="64" alt="">
 
-# bettermobilepdf
+# melhore seu livro em pdf
 
 Transforma PDFs escaneados de livros em PDFs fáceis de ler no celular.
 
