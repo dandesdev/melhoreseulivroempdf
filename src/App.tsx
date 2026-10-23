@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Nav } from "./components/Nav";
+import { FramedPage } from "./components/FramedPage";
 import { Viewer } from "./components/Viewer";
+import { pageFrame } from "./lib/frame";
 import { usePreferences } from "./context/preferences";
 import type { Mode } from "./lib/enhance";
 import { orderPages, type Layout, type Page, type Sheet } from "./lib/order";
@@ -36,6 +38,7 @@ function App() {
   const [building, setBuilding] = useState(false);
   const [dragging, setDragging] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const frame = useMemo(() => pageFrame(pages), [pages]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Order and blank-page choices are cheap: re-run them on the existing pages.
@@ -214,9 +217,9 @@ function App() {
                 <li key={p.id}>
                   <button
                     onClick={() => setSelected(i)}
-                    className="relative block w-full cursor-pointer rounded-sm overflow-hidden border border-neutral/30 bg-white shadow-md hover:scale-[1.03] transition-transform duration-300"
+                    className="relative block w-full cursor-pointer rounded-sm overflow-hidden border border-neutral/30 shadow-md hover:scale-[1.03] transition-transform duration-300"
                   >
-                    <img src={p.thumbUrl} alt={t.pageOf(i + 1, pages.length)} className="block w-full h-auto" />
+                    <FramedPage page={p} frame={frame} src={p.thumbUrl} alt={t.pageOf(i + 1, pages.length)} />
                     <span className="absolute bottom-0 left-0 px-1.5 py-0.5 text-[10px] bg-background/80 text-text">{i + 1}</span>
                     {p.blank && (
                       <span className="absolute top-0 right-0 px-1.5 py-0.5 text-[10px] bg-accent text-background">{t.blank}</span>
@@ -249,7 +252,7 @@ function App() {
           Daniel
         </a>
         {" · "}
-        <a className="text-accent hover:underline" href="https://github.com/dandesdev/bettermobilepdf" target="_blank" rel="noopener noreferrer">
+        <a className="text-accent hover:underline" href="https://github.com/dandesdev/melhoreseulivroempdf" target="_blank" rel="noopener noreferrer">
           {t.source}
         </a>
       </footer>

@@ -5,6 +5,7 @@ import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { PDFDocument } from "pdf-lib";
 import type { Hint } from "./scan";
 import type { JobOptions, JobRequest, JobResult } from "../worker";
+import { pageFrame, placePage } from "./frame";
 import type { Page, Sheet } from "./order";
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -120,10 +121,13 @@ function documentHint(confident: { k: number; split: number | null }[]): Hint | 
 
 export async function buildPdf(pages: Page[]): Promise<Blob> {
   const doc = await PDFDocument.create();
+  const frame = pageFrame(pages);
   for (const p of pages) {
     const img = await doc.embedJpg(await p.image.arrayBuffer());
-    const page = doc.addPage([p.widthPt, p.heightPt]);
-    page.drawImage(img, { x: 0, y: 0, width: p.widthPt, height: p.heightPt });
+    const page = doc.addPage([frame.w, frame.h]);
+    const at = placePage(p, frame);
+    // PDF coordinates start at the bottom left.
+    page.drawImage(img, { x: at.x, y: frame.h - at.y - at.h, width: at.w, height: at.h });
   }
   const bytes = await doc.save();
   return new Blob([bytes as BlobPart], { type: "application/pdf" });

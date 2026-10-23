@@ -1,6 +1,8 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { usePreferences } from "../context/preferences";
+import { pageFrame } from "../lib/frame";
 import type { Page } from "../lib/order";
+import { FramedPage } from "./FramedPage";
 
 type Props = {
   pages: Page[];
@@ -17,6 +19,7 @@ const actionBtn =
 export const Viewer = ({ pages, index, setIndex, setPages, onClose }: Props) => {
   const { t } = usePreferences();
   const page = pages[index];
+  const frame = useMemo(() => pageFrame(pages), [pages]);
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,8 +75,17 @@ export const Viewer = ({ pages, index, setIndex, setPages, onClose }: Props) => 
           ×
         </button>
       </div>
-      <div className="flex-1 min-h-0 overflow-auto px-4">
-        {url && <img src={url} alt="" className="mx-auto max-h-full w-auto max-w-full object-contain bg-white shadow-lg" />}
+      <div className="flex-1 min-h-0 px-4" style={{ containerType: "size" }}>
+        {url && (
+          <FramedPage
+            page={page}
+            frame={frame}
+            src={url}
+            className="mx-auto shadow-lg"
+            // As large as fits both ways: container width, or height times the page ratio.
+            style={{ width: `min(100cqw, calc(100cqh * ${frame.w / frame.h}))` }}
+          />
+        )}
       </div>
       <div className="flex gap-2 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button className={actionBtn} onClick={() => move(-1)} disabled={index === 0} aria-label={t.moveBack} title={t.moveBack}>

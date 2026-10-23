@@ -23,6 +23,8 @@ export type OutPage = {
   widthPt: number;
   heightPt: number;
   blank: boolean;
+  /** Trimmed to the text block, as opposed to the whole page area. */
+  cropped: boolean;
 };
 
 export type JobResult =
@@ -137,7 +139,8 @@ async function renderHalf(
   tc.drawImage(canvas, 0, 0, tw, th);
   const thumb = await thumbCanvas.convertToBlob({ type: "image/jpeg", quality: 0.75 });
 
-  return { image, thumb, widthPt: ow * ptPerPx, heightPt: oh * ptPerPx, blank: half.ink < 0.015 };
+  const cropped = opts.crop && (box.w < rect.w || box.h < rect.h);
+  return { image, thumb, widthPt: ow * ptPerPx, heightPt: oh * ptPerPx, blank: half.ink < 0.015, cropped };
 }
 
 /** Canvas transform that turns the source k quarter turns clockwise. */

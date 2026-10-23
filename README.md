@@ -4,7 +4,7 @@
 
 Transforma PDFs escaneados de livros em PDFs fáceis de ler no celular.
 
-🔗 No ar: https://dandesdev.github.io/bettermobilepdf/
+🔗 No ar: https://dandesdev.github.io/melhoreseulivroempdf/
 
 ## O que faz
 
