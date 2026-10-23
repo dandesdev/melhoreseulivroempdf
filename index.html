@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080a1f" />
+  <meta name="description"
+    content="Divide páginas duplas, endireita, corta margens e realça PDFs escaneados para ler no celular. Tudo roda no seu aparelho." />
+  <meta name="author" content="Daniel Rangel Guedes" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="bettermobilepdf" />
+  <meta property="og:description" content="PDFs escaneados legíveis no celular. Tudo roda no seu aparelho." />
+  <title>bettermobilepdf</title>
+  <script>
+    // Set the theme before first paint to avoid a flash.
+    (function () {
+      var t = localStorage.getItem("theme");
+      if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.classList.add(t);
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
