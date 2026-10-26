@@ -1,10 +1,10 @@
 <img src="public/favicon.svg" width="64" height="64" alt="">
 
-# melhore seu livro em pdf
+# melhor para ler
 
-Transforma PDFs escaneados de livros em PDFs fáceis de ler no celular.
+Transforma PDFs escaneados de livros e artigos em PDFs fáceis de ler no celular.
 
-🔗 No ar: https://dandesdev.github.io/melhoreseulivroempdf/
+🔗 No ar: https://dandesdev.github.io/melhorparaler/
 
 ## O que faz
 

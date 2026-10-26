@@ -1,9 +1,9 @@
 export type Language = "br" | "en";
 
 const br = {
-  appName: "melhore seu livro em pdf",
-  docTitle: "melhore seu livro em pdf: PDFs escaneados legíveis no celular",
-  tagline: "Livros escaneados, prontos para ler no celular.",
+  appName: "melhor para ler",
+  docTitle: "melhor para ler: PDFs escaneados legíveis no celular",
+  tagline: "Livros e artigos escaneados, prontos para ler no celular.",
   intro:
     "Divide as páginas duplas, endireita, corta as margens, ajusta o contraste e coloca tudo na ordem certa. Roda no seu aparelho: o arquivo não é enviado para lugar nenhum.",
   pick: "Escolher PDF",
@@ -57,9 +57,9 @@ const br = {
 export type Strings = typeof br;
 
 const en: Strings = {
-  appName: "improve your pdf book",
-  docTitle: "improve your pdf book: scanned PDFs made readable on your phone",
-  tagline: "Scanned books, ready to read on your phone.",
+  appName: "better to read",
+  docTitle: "better to read: scanned PDFs made readable on your phone",
+  tagline: "Scanned books and articles, ready to read on your phone.",
   intro:
     "Splits double pages, straightens them, trims the margins, fixes the contrast and puts everything in reading order. It runs on your device: the file is never uploaded.",
   pick: "Choose PDF",

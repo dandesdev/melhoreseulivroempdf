@@ -255,7 +255,7 @@ function App() {
           Daniel
         </a>
         {" · "}
-        <a className="text-accent hover:underline" href="https://github.com/dandesdev/melhoreseulivroempdf" target="_blank" rel="noopener noreferrer">
+        <a className="text-accent hover:underline" href="https://github.com/dandesdev/melhorparaler" target="_blank" rel="noopener noreferrer">
           {t.source}
         </a>
       </footer>
