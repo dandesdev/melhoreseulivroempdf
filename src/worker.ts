@@ -1,10 +1,11 @@
 /// <reference lib="webworker" />
 // Turns one rendered PDF page into finished output pages: analyzes a small
 // copy, then rotates, deskews, crops and enhances the full-size one.
+import { reflowColumns } from "./lib/columns";
 import { enhance, type Mode } from "./lib/enhance";
-import { analyzePage, rgbaToGray, type Half, type Hint } from "./lib/scan";
+import { analyzePage, inkMask, normalizeBackground, rgbaToGray, type Half, type Hint } from "./lib/scan";
 
-export type JobOptions = { mode: Mode; crop: boolean };
+export type JobOptions = { mode: Mode; crop: boolean; columns: boolean };
 
 export type JobRequest = {
   id: number;
@@ -25,6 +26,8 @@ export type OutPage = {
   blank: boolean;
   /** Trimmed to the text block, as opposed to the whole page area. */
   cropped: boolean;
+  /** Which page of a spread it comes from, 0 for the left. */
+  half: number;
 };
 
 export type JobResult =
@@ -67,8 +70,16 @@ ctx.onmessage = async (e: MessageEvent<JobRequest>) => {
 
     const f = bitmap.width / aw;
     const pages: OutPage[] = [];
-    for (const half of plan.halves) {
-      pages.push(await renderHalf(bitmap, plan.k, half, aw, ah, f, req.ptPerPx, req.opts));
+    for (const [i, half] of plan.halves.entries()) {
+      const canvas = renderHalf(bitmap, plan.k, half, aw, ah, f, req.opts);
+      const narrow = req.opts.columns ? reflow(canvas) : null;
+      if (narrow) {
+        for (const part of narrow) pages.push(await encode(part(), req.ptPerPx, { blank: false, cropped: true, half: i }));
+      } else {
+        const { rect, box } = half;
+        const cropped = req.opts.crop && (box.w < rect.w || box.h < rect.h);
+        pages.push(await encode(canvas, req.ptPerPx, { blank: half.ink < 0.015, cropped, half: i }));
+      }
     }
     ctx.postMessage({ ...summary, deferred: false, pages } satisfies JobResult);
   } catch (err) {
@@ -78,16 +89,15 @@ ctx.onmessage = async (e: MessageEvent<JobRequest>) => {
   }
 };
 
-async function renderHalf(
+function renderHalf(
   bitmap: ImageBitmap,
   k: number,
   half: Half,
   aw: number,
   ah: number,
   f: number,
-  ptPerPx: number,
   opts: JobOptions,
-): Promise<OutPage> {
+): OffscreenCanvas {
   const { rect, theta, content } = half;
   const box = opts.crop ? half.box : { x: 0, y: 0, w: rect.w, h: rect.h };
   const ow = Math.max(1, Math.round(box.w * f));
@@ -129,7 +139,45 @@ async function renderHalf(
     }
     c.putImageData(img, 0, 0);
   }
+  return canvas;
+}
 
+/**
+ * For a page printed in columns, one function per narrow output page that
+ * draws it; null for a single column. Drawn one at a time to save memory.
+ */
+function reflow(canvas: OffscreenCanvas): (() => OffscreenCanvas)[] | null {
+  const s = Math.min(1, ANALYSIS_SIZE / Math.max(canvas.width, canvas.height));
+  const aw = Math.round(canvas.width * s);
+  const ah = Math.round(canvas.height * s);
+  const small = new OffscreenCanvas(aw, ah);
+  const sctx = small.getContext("2d")!;
+  sctx.imageSmoothingQuality = "high";
+  sctx.drawImage(canvas, 0, 0, aw, ah);
+  const gray = rgbaToGray(sctx.getImageData(0, 0, aw, ah).data, aw, ah);
+  const plan = reflowColumns(inkMask(normalizeBackground(gray, Math.max(8, Math.round(Math.max(aw, ah) / 40)))), aw, ah);
+  if (!plan) return null;
+  const f = canvas.width / aw;
+  return plan.map((p) => () => {
+    const out = new OffscreenCanvas(Math.round(p.w * f), Math.round(p.h * f));
+    const c = out.getContext("2d")!;
+    c.fillStyle = "#fff";
+    c.fillRect(0, 0, out.width, out.height);
+    c.imageSmoothingQuality = "high";
+    for (const d of p.draws) {
+      c.drawImage(canvas, d.sx * f, d.sy * f, d.sw * f, d.sh * f, d.dx * f, d.dy * f, d.dw * f, d.dh * f);
+    }
+    return out;
+  });
+}
+
+async function encode(
+  canvas: OffscreenCanvas,
+  ptPerPx: number,
+  meta: Pick<OutPage, "blank" | "cropped" | "half">,
+): Promise<OutPage> {
+  const ow = canvas.width;
+  const oh = canvas.height;
   const image = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 });
   const tw = Math.min(THUMB_WIDTH, ow);
   const th = Math.max(1, Math.round((oh * tw) / ow));
@@ -139,8 +187,7 @@ async function renderHalf(
   tc.drawImage(canvas, 0, 0, tw, th);
   const thumb = await thumbCanvas.convertToBlob({ type: "image/jpeg", quality: 0.75 });
 
-  const cropped = opts.crop && (box.w < rect.w || box.h < rect.h);
-  return { image, thumb, widthPt: ow * ptPerPx, heightPt: oh * ptPerPx, blank: half.ink < 0.015, cropped };
+  return { image, thumb, widthPt: ow * ptPerPx, heightPt: oh * ptPerPx, ...meta };
 }
 
 /** Canvas transform that turns the source k quarter turns clockwise. */

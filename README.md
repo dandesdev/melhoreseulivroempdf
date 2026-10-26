@@ -14,6 +14,7 @@ Transforma PDFs escaneados de livros em PDFs fáceis de ler no celular.
 - Corta as margens, sombras e bordas do scanner
 - Realça o contraste, ou converte para preto e branco
 - Coloca as páginas na ordem: livro, mangá/árabe ou livreto
+- Reorganiza artigos e revistas em duas ou três colunas em páginas estreitas, na ordem de leitura
 - Permite mover, girar ou excluir páginas antes de baixar
 
 Tudo roda no navegador. O arquivo nunca sai do aparelho.
@@ -26,6 +27,7 @@ Sem modelos de IA: só processamento de imagem clássico, em `src/lib/scan.ts`.
 - **Divisão.** Procura no meio da folha a coluna com menos transições tinta/papel. Texto tem muitas; a lombada, mesmo com sombra, quase nenhuma.
 - **Alinhamento.** Gira os pixels de tinta em ângulos pequenos e escolhe o ângulo em que a projeção horizontal fica mais nítida.
 - **Recorte.** Acha o retângulo da grade de blocos com mais texto e menos espaço vazio, e acrescenta cabeçalhos, títulos e números de página próximos.
+- **Colunas.** Corta a página em blocos (XY-cut): primeiro nas faixas vazias que atravessam todas as colunas, depois nos espaços entre colunas, lendo de cima para baixo e da esquerda para a direita. Os blocos são empilhados na largura de uma coluna e quebrados entre linhas. Títulos largos encolhem para caber; números de página vão para o fim.
 - **Contraste.** Estima a cor do papel em cada região, divide a imagem por ela e estica os níveis.
 
 Páginas que não dão para decidir sozinhas (capas, páginas em branco) usam a orientação e a divisão das outras páginas do mesmo arquivo.

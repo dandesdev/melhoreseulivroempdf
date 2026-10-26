@@ -15,6 +15,8 @@ export type Quality = "normal" | "high";
 export type Progress = { done: number; total: number };
 
 const SHORT_SIDE: Record<Quality, number> = { normal: 1800, high: 2600 };
+// A column ends up as wide as the phone screen, so it needs more pixels.
+const COLUMNS_SCALE = 1.5;
 // iOS Safari refuses canvases above ~16.7M pixels.
 const MAX_PIXELS = 15_000_000;
 
@@ -51,7 +53,7 @@ export async function processPdf(
     });
 
   const processPage = async (index: number, hint: Hint | undefined, force: boolean) => {
-    const { bitmap, ptPerPx } = await renderPage(pdf, index + 1, opts.quality);
+    const { bitmap, ptPerPx } = await renderPage(pdf, index + 1, SHORT_SIDE[opts.quality] * (opts.columns ? COLUMNS_SCALE : 1));
     const res = await run({ bitmap, ptPerPx, opts, hint, force });
     if ("error" in res) throw new Error(res.error);
     if (res.deferred) return false;
@@ -90,10 +92,10 @@ export async function processPdf(
   return sheets.sort((a, b) => a.index - b.index);
 }
 
-async function renderPage(pdf: pdfjs.PDFDocumentProxy, n: number, quality: Quality) {
+async function renderPage(pdf: pdfjs.PDFDocumentProxy, n: number, shortSide: number) {
   const page = await pdf.getPage(n);
   const vp1 = page.getViewport({ scale: 1 });
-  let scale = SHORT_SIDE[quality] / Math.min(vp1.width, vp1.height);
+  let scale = shortSide / Math.min(vp1.width, vp1.height);
   const pixels = vp1.width * vp1.height * scale * scale;
   if (pixels > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / pixels);
   const viewport = page.getViewport({ scale });

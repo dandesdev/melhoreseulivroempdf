@@ -12,14 +12,14 @@ import type { Quality } from "./lib/pipeline";
 const loadPipeline = () => import("./lib/pipeline");
 import cn from "./utils/cn";
 
-type Settings = { layout: Layout; mode: Mode; crop: boolean; dropBlank: boolean; quality: Quality };
+type Settings = { layout: Layout; columns: boolean; mode: Mode; crop: boolean; dropBlank: boolean; quality: Quality };
 type Status =
   | { kind: "idle" }
   | { kind: "working"; done: number; total: number }
   | { kind: "ready" }
   | { kind: "error"; message: string };
 
-const DEFAULTS: Settings = { layout: "ltr", mode: "enhanced", crop: true, dropBlank: false, quality: "normal" };
+const DEFAULTS: Settings = { layout: "ltr", columns: false, mode: "enhanced", crop: true, dropBlank: false, quality: "normal" };
 
 const primaryBtn =
   "flex items-center justify-center gap-1 px-4 py-2 rounded-sm font-fira font-bold text-lg text-background hover:text-primary bg-primary hover:bg-transparent outline-dashed outline-2 outline-transparent hover:outline-primary shadow-lg cursor-pointer focus-visible:outline-offset-2 focus-visible:outline-text group transition-all duration-300 ease-in-out disabled:opacity-50 disabled:pointer-events-none";
@@ -60,7 +60,7 @@ function App() {
       const { processPdf } = await loadPipeline();
       const result = await processPdf(
         f,
-        { mode: s.mode, crop: s.crop, quality: s.quality },
+        { mode: s.mode, crop: s.crop, columns: s.columns, quality: s.quality },
         (p) => setStatus({ kind: "working", ...p }),
         ctrl.signal,
       );
@@ -134,7 +134,10 @@ function App() {
   const needsReprocess =
     status.kind === "ready" &&
     usedSettings !== null &&
-    (usedSettings.mode !== settings.mode || usedSettings.crop !== settings.crop || usedSettings.quality !== settings.quality);
+    (usedSettings.mode !== settings.mode ||
+      usedSettings.crop !== settings.crop ||
+      usedSettings.columns !== settings.columns ||
+      usedSettings.quality !== settings.quality);
   const working = status.kind === "working";
 
   return (
@@ -289,6 +292,15 @@ function Options({
             { value: "ltr", label: t.layoutLtr, hint: t.layoutLtrHint },
             { value: "rtl", label: t.layoutRtl, hint: t.layoutRtlHint },
             { value: "booklet", label: t.layoutBooklet, hint: t.layoutBookletHint },
+          ]}
+        />
+        <Choice
+          label={t.columns}
+          value={settings.columns ? "on" : "off"}
+          onChange={(v) => update({ columns: v === "on" })}
+          options={[
+            { value: "on", label: t.on, hint: t.columnsHint },
+            { value: "off", label: t.off },
           ]}
         />
         <Choice

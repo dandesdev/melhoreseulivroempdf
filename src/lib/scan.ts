@@ -534,9 +534,10 @@ export function contentBox(m: Uint8Array, w: number, h: number): { box: Rect; co
 type Box = { x0: number; y0: number; x1: number; y1: number };
 
 /**
- * Left and right edges of the text column between rows y0 and y1, searched
- * within [xa, xb). A text column has ink in every pixel column; stray lines
- * and shadows sit apart from it behind a clear vertical gap.
+ * Left and right edges of the text between rows y0 and y1, searched within
+ * [xa, xb). A text column has ink in every pixel column; stray lines and
+ * shadows sit apart from it behind a clear vertical gap. Pages printed in
+ * columns have several such runs of similar weight, and all of them stay.
  */
 function textColumns(m: Uint8Array, w: number, y0: number, y1: number, xa: number, xb: number): [number, number] {
   const prof = new Float32Array(xb - xa);
@@ -547,8 +548,7 @@ function textColumns(m: Uint8Array, w: number, y0: number, y1: number, xa: numbe
   for (const v of prof) peak = Math.max(peak, v);
   const thr = Math.max(1, peak * 0.03);
   const minGap = Math.max(3, Math.round(w * 0.012));
-  let best: [number, number] = [xa, xb];
-  let bestMass = -1;
+  const runs: { a: number; b: number; mass: number }[] = [];
   let x = 0;
   while (x < prof.length) {
     if (prof[x] < thr) {
@@ -565,13 +565,13 @@ function textColumns(m: Uint8Array, w: number, y0: number, y1: number, xa: numbe
       }
       x++;
     }
-    if (mass > bestMass) {
-      bestMass = mass;
-      best = [xa + a, xa + last + 1];
-    }
+    runs.push({ a: xa + a, b: xa + last + 1, mass });
     x = last + 1;
   }
-  return best;
+  if (!runs.length) return [xa, xb];
+  const best = runs.reduce((p, r) => (r.mass > p.mass ? r : p));
+  const columns = runs.filter((r) => r.mass >= best.mass * 0.25 && r.b - r.a >= (best.b - best.a) * 0.3);
+  return [Math.min(...columns.map((r) => r.a)), Math.max(...columns.map((r) => r.b))];
 }
 
 /** Maximum-sum subrectangle where text blocks count +1 and empty ones -1. */
@@ -682,7 +682,7 @@ export function dropSpecks(m: Uint8Array, w: number, h: number, minArea: number)
  * Removes ink that belongs to long straight runs: page edges, rulers,
  * gutter lines. Letters never produce runs this long.
  */
-function dropLongRuns(m: Uint8Array, w: number, h: number, maxH: number, maxV: number): Uint8Array {
+export function dropLongRuns(m: Uint8Array, w: number, h: number, maxH: number, maxV: number): Uint8Array {
   const out = Uint8Array.from(m);
   for (let y = 0; y < h; y++) {
     const r = y * w;
